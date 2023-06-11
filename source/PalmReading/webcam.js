@@ -1,5 +1,11 @@
+import { wait } from "../utils.js";
 import { handleFortune } from "./script.js";
 
+/**
+ * The wrapper element that holds all the element anchored around the middle of
+ * the screen, where the circle with the webcam video is.
+ * @type {HTMLDivElement}
+ */
 const webcamWrapper = document.getElementById("webcam-wrapper");
 /**
  * The currently displayed `.instructions` element.
@@ -37,12 +43,40 @@ function setInstructions(instruction) {
  * @type {HTMLVideoElement}
  */
 const video = document.getElementById("webcam-video");
+/**
+ * The button that requests for camera access.
+ * @type {HTMLButtonElement}
+ */
 const requestBtn = document.getElementById("request-webcam");
+/**
+ * The heartbeat graph.
+ * @type {SVGSVGElement}
+ */
 const ecgGraph = document.getElementById("ecg");
+/**
+ * A `<canvas>` that stores a snapshot of the webcam video.
+ * @type {HTMLCanvasElement}
+ */
 const result = document.getElementById("result-palm");
+/**
+ * The `CanvasRenderingContext2D` for `result`.
+ * @type {CanvasRenderingContext2D}
+ */
 const context = result.getContext("2d");
+/**
+ * The button for resetting the app and reading another hand.
+ * @type {HTMLButtonElement}
+ */
 const readAnother = document.getElementById("read-another-hand");
+/**
+ * Whether the camera should be horizontally flipped (for front-facing cameras).
+ * @type {boolean}
+ */
 let flipCamera = true;
+/**
+ * Handler for the "Begin" button that requests for camera access and turns on
+ * the webcam.
+ */
 async function startCamera() {
   document.body.classList.remove("show-results");
   requestBtn.parentNode.style.display = "none";
@@ -50,7 +84,9 @@ async function startCamera() {
   flipCamera = true;
   video.classList.add("flip");
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" },
+    });
     video.srcObject = stream;
     const track = stream.getTracks()[0];
     // Firefox does not support getCapabilities
@@ -66,52 +102,52 @@ async function startCamera() {
   }
 }
 requestBtn.addEventListener("click", startCamera);
-video.addEventListener("loadedmetadata", () => {
+video.addEventListener("loadedmetadata", async () => {
   video.play();
   video.classList.add("video-on");
   ecgGraph.classList.add("ecg-active");
   ecgHistory.splice(0, ecgHistory.length);
 
-  setTimeout(() => {
-    setInstructions("Please hold your hand over your camera.");
-  }, 500);
-  setTimeout(() => {
-    frameId = 0;
-    paintEcg();
-    setInstructions("Heartbeat detected.");
-  }, 3000);
-  setTimeout(() => {
-    paintEcg();
-    setInstructions("Keep your hand steady.");
-  }, 6000);
-  setTimeout(() => {
-    video.pause();
-    const size = Math.min(video.videoWidth, video.videoHeight);
-    result.width = size;
-    result.height = size;
-    if (flipCamera) {
-      context.translate(size, 0);
-      context.scale(-1, 1);
-    }
-    if (video.videoWidth > video.videoHeight) {
-      context.drawImage(video, -(video.videoWidth - video.videoHeight) / 2, 0);
-    } else {
-      context.drawImage(video, 0, -(video.videoHeight - video.videoWidth) / 2);
-    }
-    video.srcObject.getTracks()[0].stop();
-    window.cancelAnimationFrame(frameId);
-    frameId = null;
-    video.classList.remove("video-on");
-    ecgGraph.classList.remove("ecg-active");
-    setInstructions("");
-    readAnother.style.display = "block";
-    handleFortune();
-    document.body.classList.add("show-results");
-  }, 10000);
+  await wait(500);
+  setInstructions("Please hold your hand over your camera.");
+  await wait(2500);
+  frameId = 0;
+  paintEcg();
+  setInstructions("Heartbeat detected.");
+  await wait(3000);
+  setInstructions("Keep your hand steady.");
+  await wait(4000);
+  video.pause();
+  const size = Math.min(video.videoWidth, video.videoHeight);
+  result.width = size;
+  result.height = size;
+  if (flipCamera) {
+    context.translate(size, 0);
+    context.scale(-1, 1);
+  }
+  if (video.videoWidth > video.videoHeight) {
+    context.drawImage(video, -(video.videoWidth - video.videoHeight) / 2, 0);
+  } else {
+    context.drawImage(video, 0, -(video.videoHeight - video.videoWidth) / 2);
+  }
+  video.srcObject.getTracks()[0].stop();
+  window.cancelAnimationFrame(frameId);
+  frameId = null;
+  video.classList.remove("video-on");
+  ecgGraph.classList.remove("ecg-active");
+  setInstructions("");
+  readAnother.style.display = "block";
+  handleFortune();
+  document.body.classList.add("show-results");
 });
 readAnother.addEventListener("click", startCamera);
 
-// 20 units is about 0.6s, so 1 s = 33ish units
+/**
+ * Some points on an image of an ECG graph I found on Google Images that I
+ * manually marked out in MS Paint. Used to form the piecewise linear `ecg`
+ * polyline.
+ * @type {Array<Array<number, number>>}
+ */
 const ecgPoints = [
   [-0.8, 0.2],
   [0.4, 1.2],
@@ -128,9 +164,31 @@ const ecgPoints = [
   [16.8, 1.1],
   [18, 0.2],
 ];
+/**
+ * Horizontal shift factor to be added to each point in `ecgPoints`. This is
+ * because the image I got wasn't centered at the origin.
+ * @type {number}
+ */
 const XSHIFT = 0.8;
+/**
+ * Vertical shift factor to be added to each point in `ecgPoints`.
+ * @type {number}
+ */
 const YSHIFT = -0.2;
+/**
+ * The period of the heartbeat shape, in whatever units `ecgPoints` is in.
+ * Increase to increase the spacing between heartbeats, but it's mostly a
+ * guessing game.
+ */
 const PERIOD = 30;
+/**
+ * A periodic, piecewiese linear function that draws out the shape of an ECG.
+ * The units used in this function are kind of weird, so some guesswork is
+ * required to shape it into a nice-looking form for the heartbeat graph.
+ *
+ * @param {number} time - The x-value of the ECG graph.
+ * @returns {number} The resulting y-value of the graph.
+ */
 function ecg(time) {
   time = time % PERIOD;
   const index = ecgPoints.findIndex(([x]) => x + XSHIFT > time);
@@ -145,13 +203,54 @@ function ecg(time) {
   );
 }
 
+/**
+ * The number of SVG units in width of the fake heartbeat graph.
+ * @type {number}
+ */
 const ECG_LENGTH = 300;
+/**
+ * The FPS of the animation. `paintEcg` will try to keep the animation at this
+ * rate, for displays that have slower or faster refresh rates.
+ * @type {number}
+ */
 const FPS = 60;
+/**
+ * The `<path>` element that draws the ECG graph.
+ * @type {SVGPathElement}
+ */
 const ecgPath = document.getElementById("ecg-path");
+/**
+ * A queue of points (new elements added to the beginning) representing the ECG
+ * graph. Kept to a maximum of `ECG_LENGTH` items.
+ * @type {number[]}
+ */
 const ecgHistory = [];
+/**
+ * Tracks how much time has been "simulated" by `paintEcg`. This is used for
+ * refresh rate independence. For example, if there was a lag spike and real
+ * time passes more than usual by the next animation frame, then `paintEcg`
+ * might simulate two simulation "frames" in the same animation frame so the
+ * animation doesn't slow down.
+ * @type {number}
+ */
 let simTime = 0;
+/**
+ * The time when animation and simulation started.
+ * @type {number}
+ */
 let startTime = Date.now();
+/**
+ * The ID returned by `window.requestAnimationFrame`, used to cancel it or
+ * determine whether it is animating. `null` if `paintEcg` is not animating.
+ * @type {number | null}
+ */
 let frameId = null;
+/**
+ * Draws the next frame of the fake heartbeat ECG graph animation. Once
+ * `frameId` is set to `null`, the animation stops.
+ *
+ * This should be display refresh rate independent.
+ */
 function paintEcg() {
   if (frameId === null) {
     return;

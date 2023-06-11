@@ -1,40 +1,55 @@
 * {
   color: white;
 }
-html,
+html {
+  overflow-x: hidden;
+}
 body {
-  height: 100%;
-  width: 100%;
-  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: url("images/background.png");
+  overflow: visible;
+  overflow-x: hidden;
 }
 
 .container {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(3, 1fr);
+  grid-template-rows: 150px repeat(3, 1fr);
   justify-content: center;
   align-content: center;
+  max-width: calc((100vh - 160px) / 3 * 7);
 }
 
 .container > * {
-  aspect-ratio: 1/1;
-  max-width: 100%;
-  max-height: 100%;
   min-width: 100%;
-  min-height: 100%;
-  transition: 0.5s ease;
-  align-content: center;
-  justify-content: center;
-  justify-items: center;
 }
 
-.relationship {
-  grid-area: 1 / 4;
-  text-align: center;
-  background-color: transparent;
-  z-index: 0;
-  font-size: 1.3vw;
-  display: inline-block;
+header {
+  grid-area: 1 / 1 / 2 / 8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  margin: 0 auto;
+  margin-bottom: -25px;
+}
+.title {
+  max-width: 100vw;
+}
+
+@media (max-width: 900px) {
+  /* Cut off a column on each side */
+  .container {
+    margin: 0 calc(-100vw / 5);
+  }
+}
+@media (max-width: 650px) {
+  /* Cut off two columns on each side */
+  .container {
+    margin: 0 calc(-2 * 100vw / 3);
+  }
 }
 
 select:hover {
@@ -47,20 +62,23 @@ option {
   background: rgb(5, 0, 46);
 }
 
+.wheel {
+  overflow: hidden;
+}
 .wheel_img {
   max-width: 100%;
   max-height: 100%;
   min-width: 100%;
   min-height: 100%;
-  transition: 0.5s ease;
+  /* transition: 0.5s ease; */
 }
 
 #left_wheel_field {
-  grid-area: 1 / 1 / 5 / 4;
+  grid-area: 2 / 1 / 5 / 4;
 }
 
 #right_wheel_field {
-  grid-area: 1 / 5 / 5 / 8;
+  grid-area: 2 / 5 / 5 / 8;
 }
 
 input {
@@ -72,10 +90,9 @@ input {
   z-index: 1;
   align-content: center;
   justify-self: stretch;
-  display: flex; /* Enable flexbox */
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
-  /** filter: brightness(10000%) drop-shadow(0px 0px 10px white); **/
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: 1.25vw;
 }
 
@@ -85,19 +102,16 @@ input {
   display: block;
   text-align: center;
 }
-.bday_input:hover {
-  /** filter: brightness(10000%) drop-shadow(0px 0px 10px rgb(255, 251, 0)); **/
-}
 #left_bday_input {
-  grid-area: 1 / 2 / 4 / 3;
+  grid-area: 3 / 2 / 3 / 3;
 }
 
 #right_bday_input {
-  grid-area: 1/ 6 / 4 / 7;
+  grid-area: 3 / 6 / 3 / 7;
 }
 
 .middle {
-  grid-area: 3 / 4 / 5 / 5;
+  grid-area: 4 / 4 / 5 / 5;
   text-align: center;
 }
 
@@ -109,54 +123,218 @@ input[type="text"] {
   pointer-events: none;
 }
 
-#find-out {
-  padding: 10px 20px;
-  border-radius: 20px;
-  font-size: 1.75vw;
-  color: black;
-  margin-top: 7vw;
-  background-color: gold;
-  border-radius: 20px;
-  border: none;
-  font-weight: bold;
+.title {
+  text-align: center;
+}
+#guide {
+  align-self: center;
+  text-align: center;
+  margin-top: 20px;
+}
+#how_to {
+  font-size: 24px;
 }
 
+#arrows {
+  grid-area: 3 / 4 / 3 / 4;
+  display: grid;
+  place-items: center;
+  grid-template-columns: repeat(3, 1fr);
+}
+#left_arrow {
+  width: 2.75vw;
+  grid-area: 1 / 1;
+  filter: brightness(10000%) drop-shadow(0px 0px 10px white);
+}
+#right_arrow {
+  width: 2.75vw;
+  grid-area: 1 / 3;
+  filter: brightness(10000%) drop-shadow(0px 0px 10px white);
+}
+
+.popup-wrapper {
+  visibility: hidden;
+  pointer-events: none;
+  transition: all 0.5s;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  background-color: #3d3c597b;
+  backdrop-filter: blur(15px);
+  opacity: 0;
+}
+.open {
+  visibility: visible;
+  pointer-events: unset;
+  opacity: 1;
+}
+.popup {
+  position: relative;
+  z-index: 1;
+  margin: 40px;
+  max-width: 800px;
+  max-height: calc(100% - 80px);
+  overflow: auto;
+  background-color: #3d3c59;
+  border-radius: 15px;
+  padding: 40px;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3), 0 10px 50px rgba(0, 0, 0, 0.5);
+  transform: scale(0.95);
+  transition: transform 0.5s;
+}
+@media (max-width: 500px) {
+  .popup-wrapper {
+    align-items: flex-end;
+  }
+  .popup {
+    padding: 20px;
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+    margin: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    max-height: calc(100% - 20px);
+    transform: translateY(20px);
+  }
+}
+.open .popup {
+  transform: none;
+}
+.popup h2 {
+  text-align: center;
+  margin: 0;
+}
+.popup ul {
+  margin: 0;
+}
+.popup p,
+.popup li {
+  line-height: 1.5;
+  margin: 0.5em 0;
+}
+
+#closeButton {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 24px;
+}
 #go-back {
-  padding: 10px 20px;
-  border-radius: 20px;
-  font-size: 1.75vw;
-  color: black;
-  margin-top: 5vh;
-  background-color: gold;
-  border-radius: 20px;
-  border: none;
-  font-weight: bold;
+  margin: auto;
+  display: block;
 }
 
-#find-out:hover,
-#go-back:hover {
-  filter: brightness(10000%) drop-shadow(0px 0px 10px yellow);
+#left_wheel_field {
+  animation: slideOnLeft 1.25s;
+}
+#right_wheel_field {
+  animation: slideOnRight 1.25s;
+}
+#left_bday_input {
+  animation: appear 1s 1.25s backwards;
+}
+#right_bday_input {
+  animation: appear 1s 1.25s backwards;
+}
+#left_arrow {
+  animation: appear 1s 1.75s backwards;
+}
+#right_arrow {
+  animation: appear 1s 1.75s backwards;
+}
+#find-out {
+  animation: appear 1s 2.25s backwards;
+}
+#how_to {
+  animation: appear 1s 2.75s backwards;
 }
 
-body {
-  background-image: url("images/background.jpg");
-  background-repeat: no-repeat;
-  background-size: cover;
-  overflow: hidden;
+#left_wheel_field,
+#right_wheel_field,
+#left_arrow,
+#right_arrow,
+#left_bday_input,
+#right_bday_input {
+  transition: transform 1s, opacity 1s;
+}
+.remove-wheels #left_wheel_field,
+.remove-wheels #left_arrow,
+.remove-wheels #left_bday_input {
+  transform: translateX(-50vw);
+  opacity: 0;
+}
+.remove-wheels #right_wheel_field,
+.remove-wheels #right_arrow,
+.remove-wheels #right_bday_input {
+  transform: translateX(50vw);
+  opacity: 0;
+}
+.middle,
+#guide {
+  transition: opacity 0.5s, visibility 0.5s;
+}
+.remove-wheels .middle,
+.remove-wheels #guide {
+  visibility: hidden;
+  opacity: 0;
 }
 
-@keyframes slideOffLeft {
+@keyframes slideOnLeft {
   from {
-    transform: translateX(0);
-    opacity: 1;
+    transform: translateX(-50vw);
+    opacity: 0;
   }
 
   to {
-    transform: translateX(-100%);
-    opacity: 0;
+    transform: translateX(0%);
+    opacity: 1;
   }
 }
 
+@keyframes slideOnLeft {
+  from {
+    transform: translateX(-50vw);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+}
+@keyframes slideOnRight {
+  from {
+    transform: translateX(50vw);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+}
+
+/* I think it's fine if the buttons are clickable before they're visible. */
+@keyframes appear {
+  from {
+    opacity: 0;
+    /* pointer-events: none; */
+  }
+
+  to {
+    opacity: 1;
+    /* pointer-events: none; */
+  }
+}
 @keyframes slideOffRight {
   from {
     transform: translateX(0);
@@ -164,80 +342,7 @@ body {
   }
 
   to {
-    transform: translateX(100%);
+    transform: translateX(50vw);
     opacity: 0;
   }
-}
-
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-#pop-up {
-  display: none;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-}
-#pop-up #text {
-  background-color: #3d3c59;
-  border-radius: 20px;
-  padding: 1vh;
-  color: white;
-  border: 2px solid transparent;
-  border-radius: 20px;
-  box-shadow: 0 0 20px 0 white;
-  padding-left: 50px;
-  padding-right: 50px;
-  padding-bottom: 25px;
-  font-size: 1vw;
-}
-
-#title {
-  align-self: center;
-  text-align: center;
-}
-
-#title h1 {
-  font-size: 6vw;
-  font-style: italic;
-  font-family: "Enchanted Land", cursive;
-  color: #f1c86c;
-  margin: 2vh;
-  margin-bottom: 0vh;
-}
-
-#arrows {
-  grid-area: 2/ 4 / 2 / 4;
-  display: grid;
-  place-items: center;
-  grid-template-columns: repeat(3, 1fr);
-}
-#left_arrow {
-  width: 4vw;
-  grid-area: 1 / 1;
-  filter: brightness(10000%) drop-shadow(0px 0px 10px white);
-}
-#right_arrow {
-  width: 4vw;
-  grid-area: 1 / 3;
-  filter: brightness(10000%) drop-shadow(0px 0px 10px white);
 }
