@@ -1,16 +1,10 @@
-name: CI/CD Pipeline
+name: Testing Workflow
 on:
-  push:
-    branches:
-      - main
   workflow_run:
     workflows:
-      - "pages build and deployment"
+      - "Deploy GitHub Pages"
     types:
       - completed
-
-permissions:
-  contents: write
 
 jobs:
   testing:
