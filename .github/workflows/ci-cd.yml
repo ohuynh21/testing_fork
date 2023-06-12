@@ -1,12 +1,30 @@
-name: Generate JSDOCS
+name: CI/CD Pipeline
 run-name: Action by @${{ github.actor }}
 on:
   push:
-    branches:
-      - main
+
 permissions:
   contents: write
+
 jobs:
+  lint_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install modules
+        run: yarn
+      - name: Run ESLint
+        run: npm run lint
+
+  format_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install modules
+        run: yarn
+      - name: Check if Prettier could format code
+        run: npx prettier --check --no-config .
+
   jsdocs:
     runs-on: ubuntu-latest
     steps:
