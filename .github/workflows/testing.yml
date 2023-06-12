@@ -2,7 +2,7 @@ name: Testing Workflow
 on:
   workflow_run:
     workflows:
-      - "Deploy GitHub Pages"
+      - "pages build and deployment"
     types:
       - completed
 

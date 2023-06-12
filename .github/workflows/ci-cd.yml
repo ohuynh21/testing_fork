@@ -1,5 +1,5 @@
 name: CI/CD Pipeline
-run-name: Action by @${{ github.actor }}
+run-name: Lint, Format, Generate JSDocs
 on:
   push:
 
