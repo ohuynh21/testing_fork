@@ -88,6 +88,7 @@ async function startCamera() {
       video: { facingMode: "environment" },
     });
     video.srcObject = stream;
+    
     const track = stream.getTracks()[0];
     // Firefox does not support getCapabilities
     if ("getCapabilities" in track) {
@@ -97,6 +98,9 @@ async function startCamera() {
         flipCamera = false;
       }
     }
+    video.setAttribute('autoplay', '');
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '')
   } catch (error) {
     requestBtn.parentNode.style.display = null;
   }
